@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>qrstore Arcade - Premium Perfect Edition</title>
+  <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Orbitron:wght@500;700;800;900&display=swap');
+
+        :root {
+            --primary: #00ffc8;
+            --secondary: #ff2f92;
+            --accent: #8b5cf6;
+            --neon-blue: #00cfff;
+            --gold: #ffd84d;
+            --dark: #04040a;
+            --panel: #0b0b17;
+            --glass: rgba(255,255,255,0.05);
+            --freeze: #00aaff;
+        }
+
+        * {
+            margin: 0; padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+
+        body, html {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            font-family: 'Cairo', sans-serif;
+            background: radial-gradient(circle at top, #11182c 0%, #07070d 45%, #020205 100%);
+            color: white;
+            position: relative;
+        }
+
+        /* إطار النيون RGB الممتد على حواف الشاشة كاملة */
+        body::after {
+            content: ""; position: fixed; inset: 0;
+            border: 4px solid var(--primary); pointer-events: none; z-index: 999;
+            animation: rgbChromaBorder 6s linear infinite;
+        }
+        @keyframes rgbChromaBorder {
+            0% { border-color: var(--primary); box-shadow: inset 0 0 15px rgba(0, 255, 200, 0.4); }
+            33% { border-color: var(--neon-blue); box-shadow: inset 0 0 15px rgba(0, 207, 255, 0.4); }
+            66% { border-color: var(--secondary); box-shadow: inset 0 0 15px rgba(255, 47, 146, 0.4); }
+            100% { border-color: var(--primary); box-shadow: inset 0 0 15px rgba(0, 255, 200, 0.4); }
+        }
+
+        /* GRID BACKGROUND */
+        body::before {
+            content: ""; position: fixed; inset: 0;
+            background: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+            animation: gridMove 12s linear infinite;
+            pointer-events: none; z-index: 1;
+        }
+        @keyframes gridMove { from { transform: translateY(0px); } to { transform: translateY(40px); } }
+
+        .orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: .25; z-index: 0; pointer-events: none; }
+        .orb.one { width: 280px; height: 280px; background: var(--primary); top: -60px; left: -80px; animation: float1 8s ease-in-out infinite; }
+        .orb.two { width: 260px; height: 260px; background: var(--secondary); bottom: -100px; right: -80px; animation: float2 10s ease-in-out infinite; }
+        @keyframes float1 { 50% { transform: translate(30px, 20px); } }
+        @keyframes float2 { 50% { transform: translate(-30px, -10px); } }
+
+        /* تأثير الحركة والانتقال السينمائي بين الصفحات (Transitions Effect) */
+        .screen {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            overflow: hidden; padding: 20px; z-index: 10;
+            opacity: 1; transform: scale(1);
+            transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.1, 1, 0.1, 1);
+        }
+        .screen-anim-out {
+            opacity: 0 !important;
+            transform: scale(0.95) !important;
+            pointer-events: none;
+        }
+        .hidden { display: none !important; }
+
+        /* ARCADE GLASS PANEL */
+        .arcade-panel {
+            position: relative; z-index: 2; width: 100%; max-width: 440px;
+            max-height: 85vh; overflow-y: auto;
+            background: rgba(8, 8, 18, .82); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-radius: 28px; padding: 35px 25px;
+            border: 1px solid rgba(255, 255, 255, .08);
+            box-shadow: 0 0 40px rgba(0, 255, 200, .15), inset 0 0 30px rgba(255, 255, 255, .03);
+            text-align: center;
+        }
+        .arcade-panel::-webkit-scrollbar { width: 0; background: transparent; }
+        .arcade-panel::before {
+            content: ""; position: absolute; inset: 0; padding: 1px; border-radius: 28px;
+            background: linear-gradient(135deg, var(--primary), transparent, var(--secondary));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
+        }
+
+        /* BRAND & LOGO */
+        .brand-container { text-align: center; margin-bottom: 25px; animation: floatLogo 4s ease-in-out infinite; }
+        @keyframes floatLogo { 50% { transform: translateY(-6px); } }
+        .brand-top { font-size: 11px; letter-spacing: 3px; color: rgba(255,255,255,.5); margin-bottom: 6px; font-weight: 700; }
+        .brand-logo { font-family: 'Orbitron', sans-serif; font-size: 2.8rem; font-weight: 900; line-height: 1; text-transform: uppercase; background: linear-gradient(90deg, #fff, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 20px rgba(0,255,200,.3); }
+        .brand-logo span { color: var(--secondary); -webkit-text-fill-color: var(--secondary); text-shadow: 0 0 20px rgba(255,47,146,.4); }
+        .brand-desc { margin-top: 12px; color: rgba(255,255,255,.6); font-size: 13px; line-height: 1.6; }
+
+        /* INPUTS & FIELDS */
+        .input-box { position: relative; margin-bottom: 16px; width: 100%; }
+        .input-box input, .input-box select {
+            width: 100%; border: none; outline: none; padding: 16px 20px; border-radius: 16px;
+            background: rgba(255,255,255,.04); color: white; font-size: 14px; font-weight: 700;
+            border: 1px solid rgba(255,255,255,.08); transition: .25s; text-align: center;
+        }
+        .input-box input:focus, .input-box select:focus {
+            border-color: var(--primary); box-shadow: 0 0 0 4px rgba(0,255,200,.08), 0 0 20px rgba(0,255,200,.2); transform: translateY(-2px);
+        }
+        select option { background: #0d0d16; color: white; }
+
+        /* BUTTONS */
+        .btn-main {
+            width: 100%; border: none; outline: none; cursor: pointer; padding: 16px; border-radius: 18px;
+            margin-top: 5px; font-size: 15px; font-weight: 900; color: #050505;
+            background: linear-gradient(135deg, var(--primary), var(--neon-blue)); transition: .25s;
+            box-shadow: 0 6px 18px rgba(0,255,200,.15), 0 0 15px rgba(0,255,200,.2);
+        }
+        .btn-main:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,255,200,.25), 0 0 20px rgba(0,255,200,.35); }
+        
+        .btn-secondary {
+            width: 100%; border: none; outline: none; cursor: pointer; padding: 14px; border-radius: 18px;
+            margin-top: 5px; font-size: 14px; font-weight: 800; color: white; text-decoration: none; display: inline-block;
+            background: linear-gradient(135deg, var(--secondary), #b3003b); box-shadow: 0 0 12px rgba(255,47,146,.2); transition: 0.25s;
+        }
+
+        /* QUICK STATS */
+        .quick-stats { display: flex; gap: 10px; margin-top: 15px; width: 100%; }
+        .stat-card { flex: 1; background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.05); border-radius: 14px; padding: 8px; text-align: center; }
+        .stat-card h4 { font-size: 10px; color: rgba(255,255,255,.4); margin-bottom: 2px; }
+        .stat-card span { font-size: 13px; font-weight: 900; color: var(--primary); }
+
+        /* FOOTER BRANDING */
+        .footer-logos { margin-top: 20px; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .dev-badge { font-size: 10px; letter-spacing: 2px; color: rgba(255,255,255,.3); font-weight: 700; }
+        .dev-logo-box { padding: 8px 16px; border-radius: 10px; background: linear-gradient(135deg,#101020,#17172d); border: 1px solid rgba(255,255,255,.06); font-weight: 900; font-size: 12px; box-shadow: 0 0 10px rgba(255,47,146,.1); }
+        .dev-logo-box span { color: var(--secondary); }
+
+        /* MENU CONTROLS */
+        .menu-btn {
+            position: absolute; top: 20px; right: 20px; width: 52px; height: 52px; border-radius: 16px;
+            z-index: 100; cursor: pointer; background: rgba(8, 8, 24, 0.6); border: 1px solid rgba(0, 255, 200, 0.3);
+            display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: .25s;
+        }
+        .menu-btn div { width: 22px; height: 3px; border-radius: 20px; background: var(--primary); }
+
+        /* 👑 إعادة هندسة وتنسيق الـ SIDEBAR الاحترافي بالكامل ومنع أخطاء العرض 👑 */
+        .sidebar {
+            position: fixed; top: 0; right: -340px; width: 320px; height: 100%; z-index: 2000;
+            background: rgba(6, 6, 16, 0.98); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            border-left: 2px solid var(--primary); padding: 30px 20px;
+            display: flex; flex-direction: column; justify-content: flex-start; gap: 12px; 
+            transition: .4s cubic-bezier(0.1, 1, 0.1, 1);
+            box-shadow: -15px 0 40px rgba(0,0,0,0.7);
+        }
+        .sidebar.active { right: 0; }
+        
+        /* أزرار الـ Sidebar المتناسقة */
+        .sidebar button, .sidebar .sidebar-link-btn {
+            width: 100%; border: none; outline: none; text-decoration: none; display: block;
+            background: rgba(255,255,255,.03); color: white; padding: 14px 18px; border-radius: 16px;
+            font-weight: 800; font-size: 14px; border: 1px solid rgba(255,255,255,.06);
+            transition: .25s; text-align: center; cursor: pointer;
+        }
+        .sidebar button:hover, .sidebar .sidebar-link-btn:hover {
+            transform: translateX(-5px); border-color: var(--primary); box-shadow: 0 0 15px rgba(0,255,200,.15);
+        }
+
+        .sidebar-close-btn { 
+            background: transparent !important; border: 1px solid var(--secondary) !important; 
+            color: var(--secondary) !important; width: 42px; height: 42px; border-radius: 12px; 
+            font-size: 16px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            align-self: flex-start; margin-bottom: 10px; transition: 0.25s;
+        }
+        .sidebar-close-btn:hover { background: rgba(255, 47, 146, 0.15) !important; transform: scale(1.05); }
+
+        /* كود شبكة أزرار السوشيال ميديا بالـ Sidebar السفلي */
+        .sidebar-socials {
+            margin-top: auto; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.06);
+            display: flex; justify-content: center; gap: 12px; width: 100%;
+        }
+        .social-icon {
+            width: 44px; height: 44px; border-radius: 12px; background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(0, 255, 200, 0.2); display: flex; align-items: center; justify-content: center;
+            font-size: 18px; text-decoration: none; color: white; transition: 0.25s;
+        }
+        .social-icon:hover {
+            transform: translateY(-4px); border-color: var(--secondary);
+            box-shadow: 0 0 12px var(--secondary); filter: drop-shadow(0 0 5px var(--secondary));
+        }
+
+        /* واجهات المودال التابعة للعبة */
+        .modal-view { 
+            position: fixed; inset: 0; background: rgba(3, 3, 10, 0.65); z-index: 2500; 
+            display: flex; align-items: center; justify-content: center; padding: 20px;
+            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+        }
+        .modal-panel-mats {
+            width: 90%; max-width: 420px; background: rgba(10, 10, 24, 0.94); 
+            border: 2px solid var(--primary); border-radius: 24px; padding: 30px 22px; 
+            box-shadow: 0 0 35px rgba(0, 255, 200, 0.35); text-align: center;
+            max-height: 85vh; overflow-y: auto; z-index: 2600;
+        }
+        .modal-panel-mats::-webkit-scrollbar { width: 0; background: transparent; }
+
+        /* واجهة القصة والـ PNG */
+        .story-container {
+            display: flex; gap: 18px; align-items: center; text-align: right; margin: 15px 0;
+            background: rgba(255,255,255,0.03); padding: 20px 15px; border-radius: 20px;
+            border: 1px solid rgba(0, 255, 200, 0.15); width: 100%; min-height: 140px;
+        }
+        .story-avatar-free { width: auto; height: 100px; overflow: visible; display: flex; align-items: center; justify-content: center; filter: drop-shadow(0 0 12px var(--primary)); flex-shrink: 0; }
+        .story-avatar-free img { height: 100%; width: auto; object-fit: contain; }
+        
+        .story-text-pixel { font-size: 14px; font-weight: 700; color: #fff; flex: 1; min-height: 65px; height: auto; line-height: 1.9; letter-spacing: 0.5px; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; font-family: 'Cairo', sans-serif; }
+
+        /* LEVELS MENU GRID */
+        .levels-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; width: 100%; }
+        .level-card { background: rgba(255, 255, 255, .02); border: 1px solid rgba(255, 255, 255, .05); padding: 14px 4px; border-radius: 14px; font-size: 12px; font-weight: 800; color: #444; text-align: center; }
+        .level-card.unlocked { border-color: var(--primary); color: #fff; background: rgba(0, 250, 200, 0.05); cursor: pointer; }
+
+        /* IN-GAME HUD UI PANEL */
+        .side-ui-container { position: absolute; top: 20px; left: 20px; display: flex; flex-direction: row; gap: 8px; pointer-events: none; z-index: 8; text-align: center; max-width: calc(100% - 100px); flex-wrap: wrap; }
+        .ui-box { background: rgba(8, 8, 18, 0.85); padding: 6px 12px; border-radius: 10px; font-weight: 900; font-size: 11px; border: 1px solid rgba(0, 255, 200, 0.15); width: fit-content; box-shadow: 0 0 10px rgba(0, 255, 200, 0.08); font-family: 'Orbitron', 'Cairo', sans-serif; }
+        .buffs-container-fixed { position: absolute; top: 60px; left: 20px; display: flex; flex-direction: column; gap: 4px; pointer-events: none; z-index: 8; }
+        .buff-timer { background: rgba(12, 2, 6, 0.95); padding: 7px 12px; border-radius: 8px; font-size: 11px; font-weight: bold; border-left: 3px solid var(--secondary); width: fit-content; }
+
+        .ingame-controls { position: absolute; top: 20px; right: 20px; z-index: 8; }
+        .control-btn { background: rgba(8, 8, 18, 0.85); border: 1px solid var(--gold); padding: 10px 16px; border-radius: 12px; color: white; font-weight: 800; font-size: 12px; cursor: pointer; backdrop-filter: blur(5px); }
+
+        /* PROGRESS CONTAINER */
+        .progress-container { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 70%; max-width: 380px; background: rgba(255,255,255,0.03); height: 6px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(0,255,200,0.1); z-index: 8; }
+        .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--secondary), var(--primary)); }
+
+        .coupon { font-family: 'Orbitron', sans-serif; font-size: 22px; color: #fff; background: rgba(0,0,0,0.4); border: dashed 2px var(--gold); padding: 10px 20px; margin: 12px 0; display: inline-block; border-radius: 10px; text-shadow: 0 0 8px var(--gold); font-weight: 900; }
+        #gameContainer { position: fixed; inset: 0; width: 100vw; height: 100vh; background: #010103; z-index: 5; overflow: hidden; }
+        canvas { width: 100%; height: 100%; display: block; }
+    </style>
+</head><style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Orbitron:wght@500;700;800;900&display=swap');
+
+        :root {
+            --primary: #00ffc8;
+            --secondary: #ff2f92;
+            --accent: #8b5cf6;
+            --neon-blue: #00cfff;
+            --gold: #ffd84d;
+            --dark: #04040a;
+            --panel: #0b0b17;
+            --glass: rgba(255,255,255,0.05);
+            --freeze: #00aaff;
+        }
+
+        * {
+            margin: 0; padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+
+        body, html {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            font-family: 'Cairo', sans-serif;
+            background: radial-gradient(circle at top, #11182c 0%, #07070d 45%, #020205 100%);
+            color: white;
+            position: relative;
+        }
+
+        /* إطار النيون RGB الممتد على حواف الشاشة كاملة */
+        body::after {
+            content: ""; position: fixed; inset: 0;
+            border: 4px solid var(--primary); pointer-events: none; z-index: 999;
+            animation: rgbChromaBorder 6s linear infinite;
+        }
+        @keyframes rgbChromaBorder {
+            0% { border-color: var(--primary); box-shadow: inset 0 0 15px rgba(0, 255, 200, 0.4); }
+            33% { border-color: var(--neon-blue); box-shadow: inset 0 0 15px rgba(0, 207, 255, 0.4); }
+            66% { border-color: var(--secondary); box-shadow: inset 0 0 15px rgba(255, 47, 146, 0.4); }
+            100% { border-color: var(--primary); box-shadow: inset 0 0 15px rgba(0, 255, 200, 0.4); }
+        }
+
+        /* GRID BACKGROUND */
+        body::before {
+            content: ""; position: fixed; inset: 0;
+            background: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+            animation: gridMove 12s linear infinite;
+            pointer-events: none; z-index: 1;
+        }
+        @keyframes gridMove { from { transform: translateY(0px); } to { transform: translateY(40px); } }
+
+        .orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: .25; z-index: 0; pointer-events: none; }
+        .orb.one { width: 280px; height: 280px; background: var(--primary); top: -60px; left: -80px; animation: float1 8s ease-in-out infinite; }
+        .orb.two { width: 260px; height: 260px; background: var(--secondary); bottom: -100px; right: -80px; animation: float2 10s ease-in-out infinite; }
+        @keyframes float1 { 50% { transform: translate(30px, 20px); } }
+        @keyframes float2 { 50% { transform: translate(-30px, -10px); } }
+
+        /* تأثير الحركة والانتقال السينمائي بين الصفحات (Transitions Effect) */
+        .screen {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            overflow: hidden; padding: 20px; z-index: 10;
+            opacity: 1; transform: scale(1);
+            transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.1, 1, 0.1, 1);
+        }
+        .screen-anim-out {
+            opacity: 0 !important;
+            transform: scale(0.95) !important;
+            pointer-events: none;
+        }
+        .hidden { display: none !important; }
+
+        /* ARCADE GLASS PANEL */
+        .arcade-panel {
+            position: relative; z-index: 2; width: 100%; max-width: 440px;
+            max-height: 85vh; overflow-y: auto;
+            background: rgba(8, 8, 18, .82); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-radius: 28px; padding: 35px 25px;
+            border: 1px solid rgba(255, 255, 255, .08);
+            box-shadow: 0 0 40px rgba(0, 255, 200, .15), inset 0 0 30px rgba(255, 255, 255, .03);
+            text-align: center;
+        }
+        .arcade-panel::-webkit-scrollbar { width: 0; background: transparent; }
+        .arcade-panel::before {
+            content: ""; position: absolute; inset: 0; padding: 1px; border-radius: 28px;
+            background: linear-gradient(135deg, var(--primary), transparent, var(--secondary));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
+        }
+
+        /* BRAND & LOGO */
+        .brand-container { text-align: center; margin-bottom: 25px; animation: floatLogo 4s ease-in-out infinite; }
+        @keyframes floatLogo { 50% { transform: translateY(-6px); } }
+        .brand-top { font-size: 11px; letter-spacing: 3px; color: rgba(255,255,255,.5); margin-bottom: 6px; font-weight: 700; }
+        .brand-logo { font-family: 'Orbitron', sans-serif; font-size: 2.8rem; font-weight: 900; line-height: 1; text-transform: uppercase; background: linear-gradient(90deg, #fff, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 20px rgba(0,255,200,.3); }
+        .brand-logo span { color: var(--secondary); -webkit-text-fill-color: var(--secondary); text-shadow: 0 0 20px rgba(255,47,146,.4); }
+        .brand-desc { margin-top: 12px; color: rgba(255,255,255,.6); font-size: 13px; line-height: 1.6; }
+
+        /* INPUTS & FIELDS */
+        .input-box { position: relative; margin-bottom: 16px; width: 100%; }
+        .input-box input, .input-box select {
+            width: 100%; border: none; outline: none; padding: 16px 20px; border-radius: 16px;
+            background: rgba(255,255,255,.04); color: white; font-size: 14px; font-weight: 700;
+            border: 1px solid rgba(255,255,255,.08); transition: .25s; text-align: center;
+        }
+        .input-box input:focus, .input-box select:focus {
+            border-color: var(--primary); box-shadow: 0 0 0 4px rgba(0,255,200,.08), 0 0 20px rgba(0,255,200,.2); transform: translateY(-2px);
+        }
+        select option { background: #0d0d16; color: white; }
+
+        /* BUTTONS */
+        .btn-main {
+            width: 100%; border: none; outline: none; cursor: pointer; padding: 16px; border-radius: 18px;
+            margin-top: 5px; font-size: 15px; font-weight: 900; color: #050505;
+            background: linear-gradient(135deg, var(--primary), var(--neon-blue)); transition: .25s;
+            box-shadow: 0 6px 18px rgba(0,255,200,.15), 0 0 15px rgba(0,255,200,.2);
+        }
+        .btn-main:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,255,200,.25), 0 0 20px rgba(0,255,200,.35); }
+        
+        .btn-secondary {
+            width: 100%; border: none; outline: none; cursor: pointer; padding: 14px; border-radius: 18px;
+            margin-top: 5px; font-size: 14px; font-weight: 800; color: white; text-decoration: none; display: inline-block;
+            background: linear-gradient(135deg, var(--secondary), #b3003b); box-shadow: 0 0 12px rgba(255,47,146,.2); transition: 0.25s;
+        }
+
+        /* QUICK STATS */
+        .quick-stats { display: flex; gap: 10px; margin-top: 15px; width: 100%; }
+        .stat-card { flex: 1; background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.05); border-radius: 14px; padding: 8px; text-align: center; }
+        .stat-card h4 { font-size: 10px; color: rgba(255,255,255,.4); margin-bottom: 2px; }
+        .stat-card span { font-size: 13px; font-weight: 900; color: var(--primary); }
+
+        /* FOOTER BRANDING */
+        .footer-logos { margin-top: 3px; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .dev-badge { font-size: 10px; letter-spacing: 5px; color: rgba(255,255,255,.3); font-weight: 600; }
+        .dev-logo-link {
+    display: inline-block;
+    margin-top: 1px;
+    transition: 0.3s;
+}
+
+.dev-logo-link:hover {
+    transform: scale(1.05); /* تأثير زووم بسيط عند الوقوف بالماوس */
+    opacity: 0.9;
+}
+
+.my-custom-logo {
+    height: 70px; /* تحكم في ارتفاع اللوجو من هنا */
+    width: auto;  /* للحفاظ على الأبعاد الأصلية */
+    filter: drop-shadow(0 0 5px rgba(0, 255, 200, 0.5)); /* إضافة توهج نيون للوجو */
+}
+
+
+        /* MENU CONTROLS */
+        .menu-btn {
+            position: absolute; top: 20px; right: 20px; width: 52px; height: 52px; border-radius: 16px;
+            z-index: 100; cursor: pointer; background: rgba(8, 8, 24, 0.6); border: 1px solid rgba(0, 255, 200, 0.3);
+            display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: .25s;
+        }
+        .menu-btn div { width: 22px; height: 3px; border-radius: 20px; background: var(--primary); }
+
+        /* 👑 إعادة هندسة وتنسيق الـ SIDEBAR الاحترافي بالكامل ومنع أخطاء العرض 👑 */
+        .sidebar {
+            position: fixed; top: 0; right: -340px; width: 320px; height: 100%; z-index: 2000;
+            background: rgba(6, 6, 16, 0.98); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            border-left: 2px solid var(--primary); padding: 30px 20px;
+            display: flex; flex-direction: column; justify-content: flex-start; gap: 12px; 
+            transition: .4s cubic-bezier(0.1, 1, 0.1, 1);
+            box-shadow: -15px 0 40px rgba(0,0,0,0.7);
+        }
+        .sidebar.active { right: 0; }
+        
+        /* أزرار الـ Sidebar المتناسقة */
+        .sidebar button, .sidebar .sidebar-link-btn {
+            width: 100%; border: none; outline: none; text-decoration: none; display: block;
+            background: rgba(255,255,255,.03); color: white; padding: 14px 18px; border-radius: 16px;
+            font-weight: 800; font-size: 14px; border: 1px solid rgba(255,255,255,.06);
+            transition: .25s; text-align: center; cursor: pointer;
+        }
+        .sidebar button:hover, .sidebar .sidebar-link-btn:hover {
+            transform: translateX(-5px); border-color: var(--primary); box-shadow: 0 0 15px rgba(0,255,200,.15);
+        }
+
+        .sidebar-close-btn { 
+            background: transparent !important; border: 1px solid var(--secondary) !important; 
+            color: var(--secondary) !important; width: 42px; height: 42px; border-radius: 12px; 
+            font-size: 16px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            align-self: flex-start; margin-bottom: 10px; transition: 0.25s;
+        }
+        .sidebar-close-btn:hover { background: rgba(255, 47, 146, 0.15) !important; transform: scale(1.05); }
+
+        /* كود شبكة أزرار السوشيال ميديا بالـ Sidebar السفلي */
+       .sidebar-socials {
+    margin-top: auto; 
+    padding-top: 20px; 
+    border-top: 1px solid rgba(255,255,255,0.1);
+    display: flex; 
+    justify-content: center; 
+    gap: 15px; 
+}
+
+.sidebar-logo-container {
+    text-align: center;
+    margin-bottom: 25px;
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.sidebar-logo {
+    max-width: 180px; /* تحكم في عرض اللوجو هنا */
+    height: auto;
+    filter: drop-shadow(0 0 10px rgba(0, 255, 200, 0.4)); /* توهج خفيف للوجو */
+    transition: 0.3s ease;
+}
+
+.sidebar-logo:hover {
+    transform: scale(1.05); /* زووم بسيط عند المرور بالماوس */
+    filter: drop-shadow(0 0 15px var(--primary));
+}
+
+
+
+.social-icon {
+    width: 45px; height: 45px; border-radius: 12px;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    transition: 0.3s; cursor: pointer;
+}
+.social-icon:hover { background: var(--primary); transform: scale(1.1); box-shadow: 0 0 15px var(--primary); }
+.social-icon svg { width: 20px; height: 20px; fill: white; transition: 0.3s; }
+.social-icon:hover svg { fill: #000; }
+
+        /* واجهات المودال التابعة للعبة */
+        .modal-view { 
+            position: fixed; inset: 0; background: rgba(3, 3, 10, 0.65); z-index: 2500; 
+            display: flex; align-items: center; justify-content: center; padding: 20px;
+            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+        }
+        .modal-panel-mats {
+            width: 90%; max-width: 420px; background: rgba(10, 10, 24, 0.94); 
+            border: 2px solid var(--primary); border-radius: 24px; padding: 30px 22px; 
+            box-shadow: 0 0 35px rgba(0, 255, 200, 0.35); text-align: center;
+            max-height: 85vh; overflow-y: auto; z-index: 2600;
+        }
+        .modal-panel-mats::-webkit-scrollbar { width: 0; background: transparent; }
+
+        /* واجهة القصة والـ PNG */
+        .story-container {
+            display: flex; gap: 18px; align-items: center; text-align: right; margin: 15px 0;
+            background: rgba(255,255,255,0.03); padding: 20px 15px; border-radius: 20px;
+            border: 1px solid rgba(0, 255, 200, 0.15); width: 100%; min-height: 140px;
+        }
+        .story-avatar-free { width: auto; height: 100px; overflow: visible; display: flex; align-items: center; justify-content: center; filter: drop-shadow(0 0 12px var(--primary)); flex-shrink: 0; }
+        .story-avatar-free img { height: 100%; width: auto; object-fit: contain; }
+        
+        .story-text-pixel { font-size: 14px; font-weight: 700; color: #fff; flex: 1; min-height: 65px; height: auto; line-height: 1.9; letter-spacing: 0.5px; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; font-family: 'Cairo', sans-serif; }
+
+        /* LEVELS MENU GRID */
+        .levels-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; width: 100%; }
+        .level-card { background: rgba(255, 255, 255, .02); border: 1px solid rgba(255, 255, 255, .05); padding: 14px 4px; border-radius: 14px; font-size: 12px; font-weight: 800; color: #444; text-align: center; }
+        .level-card.unlocked { border-color: var(--primary); color: #fff; background: rgba(0, 250, 200, 0.05); cursor: pointer; }
+
+        /* IN-GAME HUD UI PANEL */
+        .side-ui-container { position: absolute; top: 20px; left: 20px; display: flex; flex-direction: row; gap: 8px; pointer-events: none; z-index: 8; text-align: center; max-width: calc(100% - 100px); flex-wrap: wrap; }
+        .ui-box { background: rgba(8, 8, 18, 0.85); padding: 6px 12px; border-radius: 10px; font-weight: 900; font-size: 11px; border: 1px solid rgba(0, 255, 200, 0.15); width: fit-content; box-shadow: 0 0 10px rgba(0, 255, 200, 0.08); font-family: 'Orbitron', 'Cairo', sans-serif; }
+        .buffs-container-fixed { position: absolute; top: 60px; left: 20px; display: flex; flex-direction: column; gap: 4px; pointer-events: none; z-index: 8; }
+        .buff-timer { background: rgba(12, 2, 6, 0.95); padding: 7px 12px; border-radius: 8px; font-size: 11px; font-weight: bold; border-left: 3px solid var(--secondary); width: fit-content; }
+
+        .ingame-controls { position: absolute; top: 20px; right: 20px; z-index: 8; }
+        .control-btn { background: rgba(8, 8, 18, 0.85); border: 1px solid var(--gold); padding: 10px 16px; border-radius: 12px; color: white; font-weight: 800; font-size: 12px; cursor: pointer; backdrop-filter: blur(5px); }
+
+        /* PROGRESS CONTAINER */
+        .progress-container { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 70%; max-width: 380px; background: rgba(255,255,255,0.03); height: 6px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(0,255,200,0.1); z-index: 8; }
+        .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--secondary), var(--primary)); }
+
+        .coupon { font-family: 'Orbitron', sans-serif; font-size: 22px; color: #fff; background: rgba(0,0,0,0.4); border: dashed 2px var(--gold); padding: 10px 20px; margin: 12px 0; display: inline-block; border-radius: 10px; text-shadow: 0 0 8px var(--gold); font-weight: 900; }
+        #gameContainer { position: fixed; inset: 0; width: 100vw; height: 100vh; background: #010103; z-index: 5; overflow: hidden; }
+        canvas { width: 100%; height: 100%; display: block; }
+    </style>
+
+<body>
+
+    <div class="orb one"></div>
+    <div class="orb two"></div>
+
+    <!-- MENU 3 LINES TOGGLE -->
+    <div class="menu-btn" id="menuBtn" onclick="toggleSidebar()">
+        <div></div><div></div><div></div>
+    </div>
+
+    <!-- SIDEBAR NAVIGATION DRAWER -->
+     <div class="sidebar" id="sidebar">
+        <!-- زر إغلاق صريح ومحايد -->
+        <button class="sidebar-close-btn" onclick="toggleSidebar()">✕</button>
+
+        <div class="sidebar-logo-container">
+    <img src="qr.png" alt="qrstore Logo" class="sidebar-logo">
+</div>
+
+        
+        <!-- تحويل صفحة المطور إلى رابط مباشر آمن بالـ href المخصص لك لتنقل فوري -->
+        <a href="https://specialman12.github.io/Mostafa.fahmi/" target="_blank" class="sidebar-link-btn">صفحة المطور</a>
+        
+        <a href="https://qrstore.store" target="_blank" class="sidebar-link-btn">موقع البراند</a>
+        <button onclick="openModal('rulesModal')">طريقة اللعب</button>
+        <button onclick="openModal('policyModal')">الشروط والسياسة</button>
+        <button onclick="resetSavedProgress()" style="border-color:var(--secondary); background:rgba(255,47,146,0.1); color:var(--secondary); margin-top: 5px;">🗑️ تصفير كل التقدم</button>
+
+        <!-- أزرار ووسائل التواصل الاجتماعي مدمجة بنيون فخم بالأسفل -->
+        <div class="sidebar-socials">
+    <!-- Facebook -->
+    <a href="https://facebook.com" target="_blank" class="social-icon">
+        <svg viewBox="0 0 320 512"><path d="M279.14 288l14.22-92.66h-88.91v-60.13c0-25.35 12.42-50.06 52.24-50.06h40.42V6.26S260.43 0 225.36 0c-73.22 0-121.08 44.38-121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z"/></svg>
+    </a>
+    <!-- Instagram -->
+    <a href="https://instagram.com" target="_blank" class="social-icon">
+        <svg viewBox="0 0 448 512"><path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8 0-14.9 12-26.8 26.8-26.8 14.9 0 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.6 102.7-9 132.1z"/></svg>
+    </a>
+    <!-- TikTok -->
+    <a href="https://tiktok.com" target="_blank" class="social-icon">
+        <svg viewBox="0 0 448 512"><path d="M448 209.91a210.06 210.06 0 0 1-122.77-39.25V349.38A162.55 162.55 0 1 1 185 188.31V278.2a74.62 74.62 0 1 0 52.23 71.18V0h88a121.18 121.18 0 0 0 1.86 22.17A122.18 122.18 0 0 0 381 102.39a121.43 121.43 0 0 0 67 20.14z"/></svg>
+    </a>
+    <!-- WhatsApp -->
+    <a href="https://wa.me/yournumber" target="_blank" class="social-icon">
+        <svg viewBox="0 0 448 512"><path d="M380.9 97.1C339 55.1 283.2 32.3 223.9 32c-134.4 0-243.6 109.2-243.6 243.6 0 42.9 11.2 84.8 32.4 121.7L0 512l117.8-30.9c35.6 19.4 75.8 29.6 116.1 29.6h.1c134.4 0 243.6-109.2 243.6-243.6 0-63.5-24.7-123.1-66.6-165zM223.9 467.5h-.1c-37.1 0-73.4-10-105.2-28.9l-7.5-4.5-78.1 20.5 20.8-76.1-4.9-7.7c-20.8-32.9-31.8-71.1-31.8-110.1 0-118.8 96.6-215.4 215.5-215.4 57.5 0 111.6 22.4 152.2 63.1 40.6 40.6 63.1 94.7 63.1 152.2 0 118.9-96.6 215.5-215.5 215.5zm118.7-161.7c-6.5-3.3-38.6-19-44.6-21.2-6-2.2-10.4-3.3-14.8 3.3-4.4 6.6-17.1 21.2-21 25.5-3.9 4.3-7.8 4.8-14.2 1.6-6.5-3.3-27.5-10.1-52.3-32.3-19.4-17.3-32.5-38.7-36.3-45.3-3.8-6.6-.4-10.2 2.9-13.5 3-2.9 6.6-7.5 9.9-11.2 3.3-3.7 4.4-6.3 6.6-10.5 2.2-4.2 1.1-7.8-.5-10.9-1.6-3.1-14.8-35.7-20.3-48.9-5.3-12.7-10.8-10.9-14.8-11.1-3.8-.2-8.2-.3-12.6-.3-4.4 0-11.5 1.6-17.5 8.1-6 6.6-22.9 22.4-22.9 54.6 0 32.2 23.4 63.3 26.7 67.7 3.3 4.4 46.1 70.4 111.6 98.7 15.6 6.7 27.8 10.7 37.3 13.7 15.7 5 30 4.3 41.3 2.6 12.6-1.9 38.6-15.8 44-31 5.4-15.2 5.4-28.2 3.8-30.8-1.6-2.6-6.1-4.2-12.6-7.5z"/></svg>
+    </a>
+</div>
+
+    </div>
+
+    <!-- SCREEN 1: THE ARCADE LOGIN CONTAINER -->
+    <div class="screen" id="loginScreen">
+        <div class="arcade-panel">
+            <div class="brand-container">
+                <div class="brand-top">NEXT GEN ARCADE SYSTEM</div>
+                <div class="brand-logo">qr<span>store</span></div>
+                <div class="brand-desc">ادخل عالم المنافسة و اجمع الجوائز و افتح المستويات بأسلوب آركيد عصري مناسب للجيل الجديد ⚡</div>
+            </div>
+            
+            <div class="input-box">
+                <input type="text" id="playerNameInput" placeholder="اكتب اسم اللاعب..." maxlength="12">
+            </div>
+            <div class="input-box">
+                <select id="teamSelect">
+                    <option value="" selected disabled>اختر فريقك القتالي</option>
+                    <option value="Qr:01">فريق العمالقة — Qr:01</option>
+                    <option value="Qr:02">فريق النخبة — Qr:02</option>
+                </select>
+            </div>
+            <button class="btn-main" onclick="openLevelsMenu()">ENTER THE GAME 🚀</button>
+
+            <div class="quick-stats">
+                <div class="stat-card"><h4>LEVELS</h4><span>12/12</span></div>
+                <div class="stat-card"><h4>PLAYERS</h4><span>9K+</span></div>
+                <div class="stat-card"><h4>REWARDS</h4><span>∞</span></div>
+            </div>
+<div class="footer-logos">
+    <div class="dev-badge">POWERED BY</div>
+    <a href="رابط_موقعك_أو_حسابك" target="https://specialman12.github.io/Mostafa.fahmi/">
+        <img src="mostafa.png" alt="Mustafa Mohamed Logo" class="my-custom-logo">
+    </a>
+</div>
+</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🌟 واجهة قصة الحوار السينمائية 1 (إغلاق محمي بزر الموافقة لمرة واحدة فقط وبـ بلور كامل) 🌟 -->
+    <div id="storyWelcomeModal" class="modal-view hidden">
+        <div class="modal-panel-mats" style="border-color: var(--secondary);">
+            <h2 style="color: var(--secondary); font-family: 'Orbitron'; font-weight: 900; letter-spacing: 1px;">CONNECTED // اتصال نشط</h2>
+            <div class="story-container">
+                <!-- صورة الكابتن المفتوحة بالكامل وبدون قيود الإطارات (PNG شفاف) -->
+                <div class="story-avatar-free">
+                    <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=150&q=80" alt="Captain PNG">
+                </div>
+                <div class="story-text-pixel" id="welcomeStoryText"></div>
+            </div>
+            <button class="btn-main hidden" id="storyWelcomeBtn" onclick="closeWelcomeStory()">استمرار الموافقة ودخول المعركة 🚀</button>
+        </div>
+    </div>
+
+    <!-- 🌟 واجهة قصة الحوار السينمائية 2 (إغلاق محمي بزر المتابعة لمرة واحدة فقط وبـ بلور كامل) 🌟 -->
+    <div id="storyStage2Modal" class="modal-view hidden">
+        <div class="modal-panel-mats" style="border-color: var(--gold);">
+            <h2 style="color: var(--gold); font-family: 'Orbitron'; font-weight: 900;">INCOMING TRANSMISSION // رسالة واردة</h2>
+            <div class="story-container">
+                <!-- صورة المساعد المفتوحة بالكامل وبدون قيود الإطارات (PNG شفاف) -->
+                <div class="story-avatar-free">
+                    <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=150&q=80" alt="Assistant PNG">
+                </div>
+                <div class="story-text-pixel" id="stage2StoryText"></div>
+            </div>
+            <button class="btn-main hidden" id="storyStage2Btn" style="background: linear-gradient(135deg, var(--gold), #d4af37);" onclick="closeStage2Story()">استلام الجائزة ومتابعة التحدي 🔓</button>
+        </div>
+    </div>
+
+    <!-- SCREEN 2: LEVELS SELECTION COMPONENT -->
+    <div class="screen hidden" id="levelsMenuScreen">
+        <div class="arcade-panel">
+            <h2 style="color: var(--primary); font-weight:900; font-size:1.6rem;">لوحة التحكم والمراحل</h2>
+            <p style="font-size: 13px; color: #aaa; margin-top: 3px;" id="welcomePlayerText">مرحباً بك في ساحة المعركة</p>
+            <div class="levels-grid" id="levelsGrid"></div>
+            <button class="btn-secondary" style="max-width: 160px; margin-top: 5px; padding:10px;" onclick="backToLogin()">◀ القائمة الرئيسية</button>
+        </div>
+    </div>
+
+    <!-- SCREEN 3: INTERMISSION STAGE VIEW REWARDS -->
+    <div class="screen hidden" id="levelUpScreen">
+        <div class="arcade-panel">
+            <h2 style="color: var(--gold); font-size: 1.5rem; text-shadow: 0 0 15px var(--gold);">🚀 تم تأمين المستوى!</h2>
+            <p style="margin: 10px 0; font-size: 14px; color: #fff; line-height: 1.5;" id="levelUpMessage">مبروك يا بطل!</p>
+            <div class="coupon" id="levelRewardCoupon">CODE</div>
+            <button class="btn-main" style="background:linear-gradient(135deg, var(--gold), #e6b800); color:black;" id="copyBtn" onclick="copyCouponCode('levelRewardCoupon', 'copyBtn')">📋 نسخ كود الخصم</button>
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px; width: 100%;">
+                <a href="https://qrstore.store" target="_blank" class="btn-secondary" style="margin:0;">🛍️ الانتقال للمتجر الشريك</a>
+                <button class="btn-main" style="margin:0;" onclick="handleNextLevelTransition()">خريطة المراحل 🔓</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 4: CORE ARCADE HUD GAMEPLAY LAYOUT -->
+    <div id="gameContainer" class="hidden">
+        <div class="side-ui-container">
+            <div class="ui-box" id="uiPlayer">👤 -</div>
+            <div class="ui-box" id="uiTeam">🛡️ -</div>
+            <div class="ui-box" id="uiLevel">LVL: 1</div>
+            <div class="ui-box" id="uiScore">PTS: 0</div>
+        </div>
+        <div class="buffs-container-fixed" id="buffsContainer"></div>
+        
+        <div class="ingame-controls">
+            <button class="control-btn" id="pauseBtn" onclick="togglePauseGame()">⏸ إيقاف مؤقت</button>
+        </div>
+        <div class="progress-container"><div class="progress-bar" id="levelProgress"></div></div>
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <!-- SCREEN 5: ARCADE PAUSE & MULTI-CONTROL MODAL -->
+    <div id="pauseModal" class="modal hidden">
+        <div class="arcade-panel" style="border-color: var(--gold); box-shadow: 0 0 30px rgba(255,216,77,0.25);">
+            <h2 style="color: var(--gold); font-size: 1.6rem; margin-bottom:10px;">⏸ تم تجميد الجولة</h2>
+            <p style="color:#aaa; font-size:13px; margin-bottom:20px;">النظام متوقف حالياً. اختر الإجراء المطلوب للتنفيذ:</p>
+            
+            <div style="display:flex; flex-direction:column; gap:12px; width: 100%;">
+                <button class="btn-main" onclick="togglePauseGame()">▶ استئناف الطيران والمعركة</button>
+                <button class="btn-main" id="menuAudioBtn" style="background: linear-gradient(135deg, #1f1f3a, #2a2a4e); color: white; border: 1px solid var(--gold); box-shadow: none;" onclick="toggleAudioInPause()">🔊 تشغيل / كتم الصوت</button>
+                <button class="btn-secondary" style="background: #1a1a2e; border: 1px solid #333; margin: 0;" onclick="exitCurrentGameToMap()">◀ انسحاب وعودة لخريطة المراحل</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 6: SYSTEM GAME OVER PANEL VIEW -->
+    <div class="screen hidden" id="gameOverScreen">
+        <div class="arcade-panel" style="border-color: var(--secondary); box-shadow: 0 0 35px rgba(255,47,146,0.3);">
+            <h1 style="color: var(--secondary); font-size: 2rem; text-shadow: 0 0 15px var(--secondary);">💥 تحطمت السفينة!</h1>
+            <p style="margin: 10px 0; font-size: 14px; color:#ccc;" id="gameOverMessage">للأسف انزلقت في الفضاء</p>
+            <button class="btn-main" onclick="retryCurrentLevel()">🔄 إعادة المحاولة الفورية</button>
+            <button class="btn-secondary" style="background: #111; border:1px solid #222;" onclick="exitGameOverToMap()">◀ خروج لخريطة المستويات</button>
+        </div>
+    </div>
+
+    <!-- SCREEN 7: ALL 12 STAGES VICTORY CELEBRATION -->
+    <div class="screen hidden" id="victoryScreen">
+        <div class="arcade-panel" style="border-color: #00ff55; box-shadow:0 0 40px rgba(0,255,200,0.3);">
+            <h1 style="color: #00ff55; font-size: 2rem; text-shadow: 0 0 20px #00ff55;">🏆 الفوز المطلق!</h1>
+            <p style="font-size: 14px; margin: 10px 0; line-height: 1.6;" id="victoryPlayerText">كفو يا بطل!</p>
+            <div class="coupon" style="border-color: #00ff55; text-shadow: 0 0 15px #00ff55;" id="finalVictoryCoupon">FINSPACE</div>
+            <button class="btn-main" style="background:linear-gradient(135deg, #00ff55, #00cc44); color:black;" id="finalCopyBtn" onclick="copyCouponCode('finalVictoryCoupon', 'finalCopyBtn')">📋 نسخ الكوبون الأكبر</button>
+            <div style="display:flex; flex-direction:column; gap:8px; margin-top: 12px; width: 100%;">
+                <a href="https://qrstore.store" target="_blank" class="btn-secondary" style="margin:0; background: linear-gradient(135deg, #00ff55, #009933); color:black; font-weight:900;">🛍️ اذهب واستخدم الخصم بالموقع</a>
+                <button class="btn-main" style="margin:0; background:#111; border:1px solid #333; color:white; box-shadow:none;" onclick="exitVictoryToMainMenu()">◀ القائمة الرئيسية</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- INFORMATION MODALS INTERFACES (تمت الصيانة الكاملة للأبعاد لمنع أخطاء التمدد) -->
+    <div id="devModal" class="modal-view hidden">
+        <div class="modal-panel-mats">
+            <h2 style="color: var(--primary); font-family: 'Orbitron';">DEVELOPER INFO</h2>
+            <p style="margin:15px 0; font-size:13.5px; line-height:1.7; text-align: justify; color: #ddd;">تم تصميم وتطوير هذا النظام التفاعلي والألعاب بالكامل بواسطة المهندس <strong>مصطفى محمد</strong> لصالح براند qrstore لعام 2026، معتمداً على هندسة جافا سكريبت النيوني وبحفظ تقدم ملقم ثابت محلياً.</p>
+            <button class="btn-main" onclick="closeModal('devModal')">إغلاق النافذة ✕</button>
+        </div>
+    </div>
+
+    <div id="rulesModal" class="modal-view hidden">
+        <div class="modal-panel-mats" style="border-color: var(--neon-blue);">
+            <h2 style="color: var(--neon-blue); font-family: 'Orbitron';">TACTICAL RULES</h2>
+            <p style="margin:15px 0; text-align:right; font-size:13.5px; line-height:1.7; color: #ddd;">1. اسحب الصاروخ بإصبعك أو الماوس لمناورة ناعمة تتبع نظام القصور الذاتي الفيزيائي.<br>2. الهجوم يعمل تلقائياً طوال الرحلة الكونية.<br>3. اقتنص المساعدات لدمج التكتيكات، وتذكر أن مفعول الكروت يقل زمنه بالليفلات العالية!</p>
+            <button class="btn-main" onclick="closeModal('rulesModal')">موافق، علم ✓</button>
+        </div>
+    </div>
+
+    <div id="policyModal" class="modal-view hidden">
+        <div class="modal-panel-mats" style="border-color: var(--secondary);">
+            <h2 style="color: var(--secondary); font-family: 'Orbitron';">PRIVACY TERMS</h2>
+            <p style="margin:15px 0; text-align:right; font-size:13.5px; line-height:1.7; color: #ddd;">- جميع الجوائز والأكواد المصدرة حقيقية ومصممة للاستخدام الفوري بمتجر البراند.<br>- يحظر التلاعب بالنظام أو الذاكرة لتزييف النقاط الكلية.<br>- بيانات التقدم تُحفظ محلياً لخصوصية تامة للعميل.</p>
+            <button class="btn-main" onclick="closeModal('policyModal')">أوافق على الشروط ✓</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let audioCtx = null, bgOsc = null, bgGain = null, audioEnabled = true;
+        let animationFrameId = null; 
+        let typewriterTimeout = null;
+
+        function loadSavedProgress() {
+            let savedLevel = localStorage.getItem('qrstore_highestLevel');
+            let savedName = localStorage.getItem('qrstore_playerName');
+            let savedTeam = localStorage.getItem('qrstore_teamName');
+            
+            if (savedLevel) gameState.highestUnlockedLevel = parseInt(savedLevel);
+            if (savedName) document.getElementById('playerNameInput').value = savedName;
+            if (savedTeam) document.getElementById('teamSelect').value = savedTeam;
+            updateAudioButtonLabel();
+        }
+
+        function saveProgress(level) {
+            if (level > gameState.highestUnlockedLevel) {
+                gameState.highestUnlockedLevel = level;
+                localStorage.setItem('qrstore_highestLevel', level);
+            }
+            localStorage.setItem('qrstore_playerName', gameState.playerName);
+            localStorage.setItem('qrstore_teamName', gameState.teamName);
+        }
+
+        function resetSavedProgress() {
+            if (confirm('هل أنت متأكد من رغبتك في حذف وتصفير جميع مستوياتك المفتوحة والبدء من جديد؟')) {
+                localStorage.clear();
+                gameState.highestUnlockedLevel = 1;
+                document.getElementById('playerNameInput').value = '';
+                document.getElementById('teamSelect').value = '';
+                alert('تم تصفير السجلات بنجاح!');
+                location.reload();
+            }
+        }
+
+        function copyCouponCode(elementId, btnId) {
+            let couponText = document.getElementById(elementId).innerText;
+            let btn = document.getElementById(btnId);
+            
+            navigator.clipboard.writeText(couponText).then(() => {
+                let oldText = btn.innerText;
+                btn.innerText = "✅ تم نسخ الكود الترويجي!";
+                btn.style.background = "#00ff55";
+                setTimeout(() => { btn.innerText = oldText; btn.style.background = ""; }, 2200);
+            }).catch(() => { alert("كود الخصم هو: " + couponText); });
+        }
+
+        function playIntroSound() {
+            if (!audioEnabled || !audioCtx) return;
+            try {
+                let osc = audioCtx.createOscillator();
+                let gainNode = audioCtx.createGain();
+                osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 1.2);
+                gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 1.2);
+                osc.start(); osc.stop(audioCtx.currentTime + 1.2);
+            } catch(e){}
+        }
+
+        function initAudio() {
+            if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (!bgOsc && audioEnabled) {
+                try {
+                    bgOsc = audioCtx.createOscillator(); bgGain = audioCtx.createGain();
+                    bgOsc.type = 'triangle'; bgOsc.frequency.setValueAtTime(55 + (gameState.level * 4), audioCtx.currentTime);
+                    bgGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                    bgOsc.connect(bgGain); bgGain.connect(audioCtx.destination); bgOsc.start();
+                } catch(e){}
+            }
+        }
+
+        function playSound(type) {
+            if (!audioEnabled || !audioCtx) return;
+            try {
+                let osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                if (type === 'laser') {
+                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(650, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.08);
+                    gain.gain.setValueAtTime(0.04, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.08);
+                } else if (type === 'explosion') {
+                    osc.type = 'square'; osc.frequency.setValueAtTime(130, audioCtx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(10, audioCtx.currentTime + 0.25);
+                    gain.gain.setValueAtTime(0.18, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.25);
+                } else if (type === 'powerup') {
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(280, audioCtx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(980, audioCtx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+                }
+            } catch(e){}
+        }
+
+        function typeWriterEffect(text, elementId, speed = 30, btnId = null) {
+            if (typewriterTimeout) clearTimeout(typewriterTimeout);
+            let i = 0;
+            let elem = document.getElementById(elementId);
+            elem.innerText = "";
+            if (btnId) document.getElementById(btnId).classList.add('hidden'); 
+            
+            function type() {
+                if (i < text.length) {
+                    elem.innerText += text.charAt(i);
+                    i++;
+                    typewriterTimeout = setTimeout(type, speed);
+                } else if (btnId) {
+                    document.getElementById(btnId).classList.remove('hidden');
+                }
+            }
+            type();
+        }
+
+        function openLevelsMenu() {
+            let name = document.getElementById('playerNameInput').value.trim();
+            let team = document.getElementById('teamSelect').value;
+            if(!name || !team) { alert('من فضلك اكتب اسمك كابتن واختر فريقك أولاً لبدء جولات qrstore!'); return; }
+            
+            gameState.playerName = name; gameState.teamName = team;
+            document.getElementById('welcomePlayerText').innerText = `الطيار: ${name} | مسار الفرز النشط للجوائز: [ ${team} ]`;
+            document.getElementById('loginScreen').classList.add('hidden');
+
+            let hasSeenIntro = localStorage.getItem('qrstore_seenWelcomeStory');
+            if (hasSeenIntro === "true") {
+                document.getElementById('levelsMenuScreen').classList.remove('hidden');
+                try { initAudio(); } catch(e){}
+                renderLevelsGrid();
+            } else {
+                document.getElementById('storyWelcomeModal').classList.remove('hidden');
+                try { initAudio(); playIntroSound(); } catch(e){}
+                let welcomeMsg = `إزيك يا كابتن ${name} عامل إيه؟ جاهز علشان تلعب وتكسب أكبر كود خصم في أكبر براند Gaming وملابس في مصر؟ اضغط على زر الاستكمال بالأسفل للموافقة ودخول المعركة!`;
+                typeWriterEffect(welcomeMsg, 'welcomeStoryText', 30, 'storyWelcomeBtn');
+            }
+        }
+
+        function closeWelcomeStory() {
+            if (typewriterTimeout) clearTimeout(typewriterTimeout);
+            localStorage.setItem('qrstore_seenWelcomeStory', 'true'); 
+            document.getElementById('storyWelcomeModal').classList.add('hidden');
+            document.getElementById('levelsMenuScreen').classList.remove('hidden');
+            renderLevelsGrid();
+        }
+
+        const couponsData = {
+            "Qr:01": { 1: "QR01-FAST10", 2: "QR01-BOOST15", 3: "QR01-MEGA20", 4: "QR01-GALAXY25", 5: "QR01-VIP30", 6: "QR01-POWER35", 7: "QR01-ELITE40", 8: "QR01-STRIKE45", 9: "QR01-HYPER50", 10: "QR01-CYBER55", 11: "QR01-TITAN60", 12: "QR01-ULTRA70" },
+            "Qr:02": { 1: "QR02-CYBER12", 2: "QR02-MATRIX18", 3: "QR02-WORM22", 4: "QR02-VECTOR28", 5: "QR02-NEXUS32", 6: "QR02-ORBIT38", 7: "QR02-SHADOW42", 8: "QR02-APEX48", 9: "QR02-STORM52", 10: "QR02-ALPHA58", 11: "QR02-OMEGA64", 12: "QR02-MASTER80" }
+        };
+
+        const buffConfig = {
+            'SHIELD': { emoji: '🛡️', label: 'الدرع الفولاذي' },
+            'SUPER_BEAM': { emoji: '🔥', label: 'ليزر الأوفر درايف' },
+            'DOUBLE_DAMAGE': { emoji: '⚡', label: 'صدمة مضاعفة' },
+            'FREEZE': { emoji: '❄️', label: 'تجميد الأعداء' },
+            'NUKE': { emoji: '💣', label: 'القنبلة النووية' }
+        };
+
+        let gameState = { running: false, isPaused: false, playerName: '', teamName: '', score: 0, level: 1, maxLevels: 12, highestUnlockedLevel: 1, enemiesKilledInLevel: 0, enemiesRequiredPerLevel: 6 };
+        let player = { x: 0, y: 0, targetX: 0, targetY: 0, width: 55, height: 55, hp: 100, maxHp: 100, shield: 0, maxShield: 60, isShielded: false, isDragging: false };
+        
+        let bullets = [], enemies = [], particles = [], powerUps = [], starfield = [];
+        let activeBuffs = { 'SHIELD': 0, 'SUPER_BEAM': 0, 'DOUBLE_DAMAGE': 0, 'FREEZE': 0 };
+
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); if(document.getElementById('sidebar').classList.contains('active')) toggleSidebar(); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function backToLogin() {
+            document.getElementById('levelsMenuScreen').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('menuBtn').classList.remove('hidden');
+        }
+
+        function renderLevelsGrid() {
+            const grid = document.getElementById('levelsGrid'); grid.innerHTML = '';
+            for (let i = 1; i <= gameState.maxLevels; i++) {
+                let card = document.createElement('div'); card.className = 'level-card';
+                if (i <= gameState.highestUnlockedLevel) {
+                    card.classList.add('unlocked'); card.innerHTML = `مرحلة ${i} <span style="display:block;font-size:10px;color:var(--primary)">🔓 متاح</span>`;
+                    card.onclick = () => launchLevel(i);
+                } else { card.innerHTML = `مرحلة ${i} <span style="display:block;font-size:10px;color:#444">🔒 مقفل</span>`; }
+                grid.appendChild(card);
+            }
+        }
+
+        function launchLevel(levelNumber) {
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+
+            gameState.level = levelNumber; gameState.enemiesKilledInLevel = 0;
+            gameState.enemiesRequiredPerLevel = 6 + (levelNumber * 4);
+            gameState.isPaused = false;
+
+            document.getElementById('uiPlayer').innerText = `👤 ${gameState.playerName}`;
+            document.getElementById('uiTeam').innerText = `🛡️ ${gameState.teamName}`;
+            document.getElementById('uiLevel').innerText = `LVL: ${gameState.level}/12`;
+            document.getElementById('uiScore').innerText = `PTS: ${gameState.score}`;
+            document.getElementById('levelProgress').style.width = '0%';
+
+            document.getElementById('levelsMenuScreen').classList.add('hidden');
+            document.getElementById('menuBtn').classList.add('hidden');
+            document.getElementById('gameContainer').classList.remove('hidden');
+
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            starfield = []; for (let i = 0; i < 35; i++) starfield.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, size: Math.random() * 2 + 0.5, speed: Math.random() * 1.2 + 0.3 });
+
+            player.x = canvas.width / 2 - player.width / 2; player.y = canvas.height - 130;
+            player.targetX = player.x; player.targetY = player.y; 
+            player.hp = 100; player.shield = 0; player.isShielded = false;
+
+            enemies = []; bullets = []; powerUps = [];
+            for (let b in activeBuffs) activeBuffs[b] = 0;
+            document.getElementById('buffsContainer').innerHTML = '';
+
+            gameState.running = true;
+            gameLoop(); 
+        }
+
+        function togglePauseGame() {
+            if (!gameState.running) return;
+            gameState.isPaused = !gameState.isPaused;
+            let modal = document.getElementById('pauseModal');
+            if (gameState.isPaused) { modal.classList.remove('hidden'); cancelAnimationFrame(animationFrameId); } 
+            else { modal.classList.add('hidden'); gameLoop(); }
+        }
+
+        function toggleAudioInPause() {
+            audioEnabled = !audioEnabled;
+            updateAudioButtonLabel();
+            if(!audioEnabled && bgOsc) { try { bgOsc.stop(); bgOsc = null; } catch(e){} }
+            else if(audioEnabled && audioCtx) { startBackgroundMusicDirectly(); }
+        }
+
+        function startBackgroundMusicDirectly() {
+            try {
+                if (bgOsc) return;
+                bgOsc = audioCtx.createOscillator(); bgGain = audioCtx.createGain();
+                bgOsc.type = 'triangle'; bgOsc.frequency.setValueAtTime(55 + (gameState.level * 4), audioCtx.currentTime);
+                bgGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                bgOsc.connect(bgGain); bgGain.connect(audioCtx.destination); bgOsc.start();
+            } catch(e){}
+        }
+
+        function updateAudioButtonLabel() {
+            let label = audioEnabled ? "🔊 الصوت: نشط" : "🔇 الصوت: مكتوم";
+            document.getElementById('menuAudioBtn').innerText = label;
+        }
+
+        function exitCurrentGameToMap() {
+            gameState.running = false; cancelAnimationFrame(animationFrameId);
+            document.getElementById('pauseModal').classList.add('hidden');
+            document.getElementById('gameContainer').classList.add('hidden');
+            document.getElementById('levelsMenuScreen').classList.remove('hidden');
+            renderLevelsGrid();
+        }
+
+        function exitGameOverToMap() {
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            document.getElementById('levelsMenuScreen').classList.remove('hidden');
+            renderLevelsGrid();
+        }
+
+        function exitVictoryToMainMenu() {
+            document.getElementById('victoryScreen').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('menuBtn').classList.remove('hidden');
+        }
+
+        let enemySpawnTimer = 0;
+        function handleEnemySpawning() {
+            enemySpawnTimer++;
+            let spawnRate = Math.max(15, 80 - (gameState.level * 5));
+            if (enemySpawnTimer >= spawnRate) {
+                enemySpawnTimer = 0;
+                let speedBase = 1.4 + (gameState.level * 0.4);
+                let hpBase = 10 + (gameState.level * 22); 
+                enemies.push({ x: Math.random() * (canvas.width - 45), y: -45, width: 42, height: 42, speed: (Math.random() * 1.0 + 0.8) * speedBase, hp: hpBase, maxHp: hpBase, color: `hsl(${360 - (gameState.level * 25)}, 100%, 55%)` });
+            }
+        }
+
+        let powerUpSpawnTimer = 0;
+        function handlePowerUpSpawning() {
+            powerUpSpawnTimer++;
+            let dynamicSpawnInterval = Math.max(130, 320 - (gameState.level * 20)); 
+            if (powerUpSpawnTimer >= dynamicSpawnInterval) {
+                powerUpSpawnTimer = 0;
+                let types = ['SHIELD', 'SUPER_BEAM', 'DOUBLE_DAMAGE', 'FREEZE', 'NUKE'];
+                powerUps.push({ x: Math.random() * (canvas.width - 35), y: -35, width: 35, height: 35, type: types[Math.floor(Math.random() * types.length)], speed: 2.5 });
+            }
+        }
+
+        window.addEventListener('mousedown', () => { if(gameState.running && !gameState.isPaused) player.isDragging = true; });
+        window.addEventListener('touchstart', () => { if(gameState.running && !gameState.isPaused) player.isDragging = true; });
+        window.addEventListener('mouseup', () => player.isDragging = false);
+        window.addEventListener('touchend', () => player.isDragging = false);
+        
+        function updateTargetPos(clientX, clientY) {
+            if (!gameState.running || !player.isDragging || gameState.isPaused) return;
+            player.targetX = clientX - player.width / 2; player.targetY = clientY - player.height / 2;
+        }
+        window.addEventListener('mousemove', (e) => updateTargetPos(e.clientX, e.clientY));
+        window.addEventListener('touchmove', (e) => updateTargetPos(e.touches[0].clientX, e.touches[0].clientY));
+
+        let laserTimer = 0;
+        function handleShooting() {
+            laserTimer++;
+            if (laserTimer >= 10) {
+                laserTimer = 0;
+                let dmg = activeBuffs['DOUBLE_DAMAGE'] > 0 ? 30 : 15;
+                if (activeBuffs['SUPER_BEAM'] > 0) {
+                    bullets.push({ x: player.x + 6, y: player.y + 10, width: 5, height: 16, damage: dmg });
+                    bullets.push({ x: player.x + player.width - 11, y: player.y + 10, width: 5, height: 16, damage: dmg });
+                } else { bullets.push({ x: player.x + player.width/2 - 2.5, y: player.y, width: 5, height: 16, damage: dmg }); }
+                playSound('laser');
+            }
+        }
+
+        function activatePowerUpCard(type) {
+            if (type === 'NUKE') {
+                playSound('explosion');
+                enemies.forEach(e => {
+                    createExplosion(e.x + e.width/2, e.y + e.height/2, '#fff');
+                    gameState.score += 10; gameState.enemiesKilledInLevel++;
+                });
+                enemies = []; document.getElementById('uiScore').innerText = `PTS: ${gameState.score}`;
+                let percentage = (gameState.enemiesKilledInLevel / gameState.enemiesRequiredPerLevel) * 100;
+                document.getElementById('levelProgress').style.width = `${Math.min(percentage, 100)}%`;
+                checkLevelProgress(); return;
+            }
+
+            let dynamicDuration = Math.max(3, 7 - Math.floor(gameState.level / 2.5)); 
+            activeBuffs[type] = dynamicDuration;
+            
+            if(type === 'SHIELD') { player.isShielded = true; player.shield = player.maxShield; }
+            playSound('powerup'); updateBuffsUI();
+        }
+
+        function updateBuffsUI() {
+            const container = document.getElementById('buffsContainer'); container.innerHTML = '';
+            for (let card in activeBuffs) {
+                if (activeBuffs[card] > 0) {
+                    let config = buffConfig[card];
+                    let borderColors = { 'SHIELD': 'var(--neon-blue)', 'SUPER_BEAM': 'var(--secondary)', 'DOUBLE_DAMAGE': 'var(--gold)', 'FREEZE': 'var(--freeze)' };
+                    container.innerHTML += `<div class="buff-timer" style="border-left-color: ${borderColors[card]}">${config.emoji} ${config.label}: ${activeBuffs[card]} ث</div>`;
+                }
+            }
+        }
+
+        setInterval(() => {
+            if (!gameState.running || gameState.isPaused) return;
+            let updated = false;
+            for (let card in activeBuffs) {
+                if (activeBuffs[card] > 0) {
+                    activeBuffs[card]--;
+                    if(activeBuffs[card] <= 0 && card === 'SHIELD') { player.isShielded = false; player.shield = 0; }
+                    updated = true;
+                }
+            }
+            if(updated) updateBuffsUI();
+        }, 1000);
+
+        function createExplosion(x, y, color) {
+            playSound('explosion');
+            for(let i=0; i<12; i++) particles.push({ x: x, y: y, vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6, radius: Math.random() * 3 + 1, alpha: 1, color: color });
+        }
+
+        function damagePlayer(amount) {
+            let hardDamage = amount + (gameState.level * 2.5);
+            if (player.isShielded && player.shield > 0) {
+                player.shield -= hardDamage;
+                if (player.shield <= 0) { player.isShielded = false; player.shield = 0; updateBuffsUI(); }
+            } else { player.hp -= hardDamage; }
+            if (player.hp <= 0) { player.hp = 0; triggerGameOver(); }
+        }
+
+        function update() {
+            starfield.forEach(star => { star.y += star.speed; if(star.y > canvas.height) { star.y = 0; star.x = Math.random() * canvas.width; } });
+            
+            if (player.isDragging) {
+                player.x += (player.targetX - player.x) * 0.22; player.y += (player.targetY - player.y) * 0.22;
+            }
+            
+            if (player.x < 0) player.x = 0; if (player.x > canvas.width - player.width) player.x = canvas.width - player.width;
+            if (player.y < 0) player.y = 0; if (player.y > canvas.height - player.height) player.y = canvas.height - player.height;
+
+            handleEnemySpawning(); handlePowerUpSpawning(); handleShooting();
+
+            bullets.forEach((b, index) => { b.y -= 15; if (b.y < 0) bullets.splice(index, 1); });
+
+            enemies.forEach((e, eIdx) => {
+                let currentSpeed = activeBuffs['FREEZE'] > 0 ? e.speed * 0.35 : e.speed; e.y += currentSpeed;
+                if (e.y > canvas.height) { enemies.splice(eIdx, 1); damagePlayer(15); }
+                if (checkCollision(player, e)) { enemies.splice(eIdx, 1); createExplosion(e.x + e.width/2, e.y + e.height/2, e.color); damagePlayer(25); }
+
+                bullets.forEach((b, bIdx) => {
+                    if (checkCollision(b, e)) {
+                        bullets.splice(bIdx, 1); e.hp -= b.damage;
+                        if (e.hp <= 0) {
+                            createExplosion(e.x + e.width/2, e.y + e.height/2, e.color); enemies.splice(eIdx, 1); gameState.score += 10;
+                            document.getElementById('uiScore').innerText = `PTS: ${gameState.score}`;
+                            gameState.enemiesKilledInLevel++;
+                            let percentage = (gameState.enemiesKilledInLevel / gameState.enemiesRequiredPerLevel) * 100;
+                            document.getElementById('levelProgress').style.width = `${Math.min(percentage, 100)}%`;
+                            checkLevelProgress();
+                        }
+                    }
+                });
+            });
+
+            powerUps.forEach((p, pIdx) => { p.y += p.speed; if(p.y > canvas.height) powerUps.splice(pIdx, 1); if (checkCollision(player, p)) { activatePowerUpCard(p.type); powerUps.splice(pIdx, 1); } });
+            particles.forEach((p, index) => { p.x += p.vx; p.y += p.vy; p.alpha -= 0.035; if (p.alpha <= 0) particles.splice(index, 1); });
+        }
+
+        function checkLevelProgress() {
+            if (gameState.enemiesKilledInLevel >= gameState.enemiesRequiredPerLevel) {
+                gameState.running = false; cancelAnimationFrame(animationFrameId); 
+                let nextLvl = gameState.level + 1;
+                if (gameState.level === gameState.highestUnlockedLevel && nextLvl <= gameState.maxLevels) { saveProgress(nextLvl); } 
+                else { saveProgress(gameState.highestUnlockedLevel); }
+
+                let currentCoupon = couponsData[gameState.teamName][gameState.level] || "QR10";
+                document.getElementById('levelRewardCoupon').innerText = currentCoupon;
+                document.getElementById('levelUpMessage').innerText = `كفو يا كابتن ${gameState.playerName}! نجحت في تأمين واكتساح ليفل ${gameState.level} لصالح خط [ ${gameState.teamName} ]`;
+                document.getElementById('gameContainer').classList.add('hidden');
+                
+                if (gameState.level === 2) {
+                    document.getElementById('storyStage2Modal').classList.remove('hidden');
+                    let stage2Msg = `مبروك عليك يا كابتن ${gameState.playerName}، المكتوب مفرز وجاهز عندنا في السجلات إنك طيار محترف، كمل واكسب الخصومات الجاية وشوف المفاجآت الكبرى في كل ليفل جديد هتقفلو!`;
+                    typeWriterEffect(stage2Msg, 'stage2StoryText', 30, 'storyStage2Btn');
+                } else {
+                    document.getElementById('levelUpScreen').classList.remove('hidden');
+                }
+            }
+        }
+
+        function closeStage2Story() {
+            if (typewriterTimeout) clearTimeout(typewriterTimeout);
+            document.getElementById('storyStage2Modal').classList.add('hidden');
+            document.getElementById('levelUpScreen').classList.remove('hidden'); 
+        }
+
+        function handleNextLevelTransition() {
+            document.getElementById('levelUpScreen').classList.add('hidden');
+            document.getElementById('levelsMenuScreen').classList.remove('hidden');
+            renderLevelsGrid();
+        }
+
+        function loadNextLevelFromScreen() {
+            document.getElementById('levelUpScreen').classList.add('hidden');
+            document.getElementById('levelsMenuScreen').classList.remove('hidden');
+            renderLevelsGrid();
+        }
+
+        function retryCurrentLevel() {
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            launchLevel(gameState.level);
+        }
+
+        function triggerGameOver() {
+            gameState.running = false; cancelAnimationFrame(animationFrameId);
+            document.getElementById('gameOverMessage').innerText = `تحطمت مركبتك يا كابتن ${gameState.playerName} في ليفل ${gameState.level}! مجموع نقاطك: ${gameState.score}`;
+            document.getElementById('gameContainer').classList.add('hidden');
+            document.getElementById('gameOverScreen').classList.remove('hidden');
+        }
+
+        function triggerVictory() {
+            gameState.running = false; cancelAnimationFrame(animationFrameId);
+            document.getElementById('gameContainer').classList.add('hidden');
+            document.getElementById('victoryPlayerText').innerText = `أنت بطل المجرة الحقيقي يا كابتن ${gameState.playerName}! قفلت المستويات الـ 12 بالكامل وأثبت جدارتك لـ [ ${gameState.teamName} ]!`;
+            document.getElementById('finalVictoryCoupon').innerText = gameState.teamName === "Qr:01" ? "QR01-FINALSPACE2026" : "QR02-CYBERKING2026";
+            document.getElementById('victoryScreen').classList.remove('hidden');
+        }
+
+        function checkCollision(r1, r2) { return r1.x < r2.x + r2.width && r1.x + r1.width > r2.x && r1.y < r2.y + r2.height && r1.y + r1.height > r2.y; }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = activeBuffs['FREEZE'] > 0 ? "rgba(0, 45, 90, 0.25)" : "#000"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#ffffff"; starfield.forEach(star => { ctx.globalAlpha = star.size / 2; ctx.fillRect(star.x, star.y, star.size, star.size); }); ctx.globalAlpha = 1.0;
+
+            // رسم الصاروخ
+            ctx.save(); ctx.fillStyle = '#00ffcc'; ctx.shadowBlur = 15; ctx.shadowColor = '#00ffcc'; ctx.beginPath();
+            ctx.moveTo(player.x + player.width / 2, player.y); ctx.lineTo(player.x + 12, player.y + player.height - 15); ctx.lineTo(player.x, player.y + player.height); ctx.lineTo(player.x + player.width / 2, player.y + player.height - 10); ctx.lineTo(player.x + player.width, player.y + player.height); ctx.lineTo(player.x + player.width - 12, player.y + player.height - 15);
+            ctx.closePath(); ctx.fill(); ctx.restore();
+
+            if (player.isShielded && activeBuffs['SHIELD'] > 0) { 
+                ctx.save(); ctx.strokeStyle = '#00d2ff'; ctx.shadowBlur = 18; ctx.shadowColor = '#00d2ff'; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.arc(player.x + player.width/2, player.y + player.height/2, player.width - 4, 0, Math.PI * 2); ctx.stroke(); ctx.restore(); 
+            }
+
+            ctx.fillStyle = '#111'; ctx.fillRect(player.x - 5, player.y - 14, player.width + 10, 5);
+            ctx.fillStyle = '#ff0055'; ctx.fillRect(player.x - 5, player.y - 14, (player.hp / player.maxHp) * (player.width + 10), 5);
+
+            bullets.forEach(b => { ctx.fillStyle = activeBuffs['DOUBLE_DAMAGE'] > 0 ? '#ff0055' : '#00d2ff'; ctx.fillRect(b.x, b.y, b.width, b.height); });
+
+            enemies.forEach(e => {
+                ctx.save(); ctx.fillStyle = e.color; ctx.shadowBlur = 10; ctx.shadowColor = e.color; ctx.beginPath(); ctx.moveTo(e.x + e.width / 2, e.y + e.height); ctx.lineTo(e.x, e.y); ctx.lineTo(e.x + 10, e.y + 10); ctx.lineTo(e.x + e.width - 10, e.y + 10); ctx.lineTo(e.x + e.width, e.y); ctx.closePath(); ctx.fill();
+                if(activeBuffs['FREEZE'] > 0) { ctx.strokeStyle = '#00aaff'; ctx.lineWidth = 2; ctx.stroke(); }
+                ctx.restore();
+                ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(e.x, e.y - 9, e.width, 4);
+                ctx.fillStyle = '#00ff55'; ctx.fillRect(e.x, e.y - 9, (e.hp / e.maxHp) * e.width, 4);
+            });
+
+            powerUps.forEach(p => { 
+                ctx.save(); let pColor = p.type === 'SHIELD' ? '#00d2ff' : (p.type === 'SUPER_BEAM' ? '#ff0055' : (p.type === 'FREEZE' ? '#00aaff' : (p.type === 'NUKE' ? '#fff' : '#ffd700'))); 
+                ctx.fillStyle = pColor; ctx.shadowBlur = 15; ctx.shadowColor = pColor; ctx.beginPath(); ctx.arc(p.x + p.width/2, p.y + p.height/2, p.width/2, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#000'; ctx.font = '14px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(buffConfig[p.type] ? buffConfig[p.type].emoji : p.type[0], p.x + p.width/2, p.y + p.height/2);
+                ctx.restore(); 
+            });
+            particles.forEach(p => { ctx.save(); ctx.globalAlpha = p.alpha; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2); ctx.fill(); ctx.restore(); });
+        }
+
+        function gameLoop() { if (!gameState.running || gameState.isPaused) return; update(); draw(); animationFrameId = requestAnimationFrame(gameLoop); }
+        window.onload = loadSavedProgress;
+    </script>
+</body>
+</html>

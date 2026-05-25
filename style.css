@@ -1,0 +1,130 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: #1a1a2e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+    color: #fff;
+}
+
+.game-container {
+    width: 400px;
+    height: 600px;
+    position: relative;
+    background: #162447;
+    border: 4px solid #e43f5a;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+/* لوحة النتائج */
+.scoreboard {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.4);
+    font-size: 18px;
+    font-weight: bold;
+    border-bottom: 2px solid #e43f5a;
+}
+
+/* منطقة اللعب */
+.game-area {
+    width: 100%;
+    height: calc(100% - 54px);
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(to bottom, #1f4068, #162447);
+}
+
+/* السلة المصيدة */
+.basket {
+    width: 80px;
+    height: 20px;
+    background: #e43f5a;
+    position: absolute;
+    bottom: 10px;
+    left: 160px; /* المنتصف تقريباً */
+    border-radius: 5px;
+    box-shadow: 0 0 10px #e43f5a;
+    transition: left 0.1s ease-out;
+}
+
+/* الجواهر المتساقطة */
+.gem {
+    width: 25px;
+    height: 25px;
+    background: #00fff5;
+    position: absolute;
+    top: 0;
+    border-radius: 50px 0 50px 50px;
+    transform: rotate(-45deg);
+    box-shadow: 0 0 8px #00fff5;
+}
+
+/* شاشة التنبيه والمكافآت */
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    visibility: hidden;
+    opacity: 0;
+    transition: 0.3s;
+    border-radius: 6px;
+}
+
+.overlay.show {
+    visibility: visible;
+    opacity: 1;
+}
+
+.modal {
+    text-align: center;
+    background: #1f4068;
+    padding: 30px;
+    border-radius: 10px;
+    border: 2px solid #00fff5;
+    width: 80%;
+}
+
+.modal h2 { color: #00fff5; margin-bottom: 10px; }
+.modal p { color: #e43f5a; font-size: 18px; margin-bottom: 15px;}
+
+.reward-icon {
+    font-size: 50px;
+    margin: 15px 0;
+    animation: bounce 1s infinite alternate;
+}
+
+button {
+    background: #e43f5a;
+    color: white;
+    border: none;
+    padding: 10px 25px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+button:hover { background: #ff4b6e; }
+
+@keyframes bounce {
+    from { transform: scale(1); }
+    to { transform: scale(1.2); }
+}
